@@ -23,7 +23,7 @@ def get_recent_tweets(username, bearer_token, max_results=10):
     headers = {"Authorization": f"Bearer {bearer_token}"}
     url = "https://api.twitter.com/2/tweets/search/recent"
     params = {
-        'query': f'from:{username} -is:retweet -is:reply',
+        'query': f'from:{username}',  # ✅ No filters
         'tweet.fields': 'created_at,text',
         'max_results': max_results
     }
