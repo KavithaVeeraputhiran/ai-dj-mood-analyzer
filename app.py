@@ -76,7 +76,6 @@ if st.button("Analyze Now"):
             })
 
         df = pd.DataFrame(rows)
-
         if df.empty:
             st.warning("No tweets were found or valid for analysis. Try a different username or check your token.")
         else:
