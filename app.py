@@ -61,9 +61,11 @@ if st.button("Analyze Now"):
         tweets = get_recent_tweets(username, bearer_token)
         emotion_memory = deque(maxlen=5)
         rows = []
+
         for tw in tweets:
             c = clean_tweet(tw['text'])
-            if len(c) < 5: continue
+            if len(c) < 5:
+                continue
             res = emotion_classifier(c)[0]
             emotion_memory.append(res['label'])
             rows.append({
@@ -72,23 +74,22 @@ if st.button("Analyze Now"):
                 "Emotion": res["label"],
                 "Conf": round(res["score"], 2)
             })
-      df = pd.DataFrame(rows)
 
-if df.empty:
-    st.warning("No tweets were found or valid for analysis. Try a different username or check your token.")
-else:
-    df["Time"] = pd.to_datetime(df["Time"])
-    st.subheader("Analyzed Tweets")
-    st.dataframe(df)
-    
-    st.subheader("Emotion Distribution")
-    st.pyplot(df["Emotion"].value_counts().plot.pie(autopct="%1.1f%%", figsize=(6,6)).figure)
-    
-    st.subheader("Emotion Over Time")
-    st.line_chart(df.groupby([pd.Grouper(key="Time", freq="D"), "Emotion"]).size().unstack().fillna(0))
-    
-    mood = predict_next_emotion(emotion_memory)
-    st.success(f"🎵 Recommended Mood: **{mood.upper()}**")
-    st.markdown(f"[Play playlist for {mood}]({emotion_to_music[mood]})", unsafe_allow_html=True)
+        df = pd.DataFrame(rows)
 
-    
+        if df.empty:
+            st.warning("No tweets were found or valid for analysis. Try a different username or check your token.")
+        else:
+            df["Time"] = pd.to_datetime(df["Time"])
+            st.subheader("Analyzed Tweets")
+            st.dataframe(df)
+
+            st.subheader("Emotion Distribution")
+            st.pyplot(df["Emotion"].value_counts().plot.pie(autopct="%1.1f%%", figsize=(6, 6)).figure)
+
+            st.subheader("Emotion Over Time")
+            st.line_chart(df.groupby([pd.Grouper(key="Time", freq="D"), "Emotion"]).size().unstack().fillna(0))
+
+            mood = predict_next_emotion(emotion_memory)
+            st.success(f"🎵 Recommended Mood: **{mood.upper()}**")
+            st.markdown(f"[Play playlist for {mood}]({emotion_to_music[mood]})", unsafe_allow_html=True)
