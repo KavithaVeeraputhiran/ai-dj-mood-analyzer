@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import torch
 from transformers import pipeline
 import matplotlib.pyplot as plt
 import pandas as pd
