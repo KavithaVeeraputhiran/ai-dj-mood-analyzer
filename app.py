@@ -7,18 +7,18 @@ import pandas as pd
 from collections import deque, Counter
 import re
 
-# Emotion classifier
+# Load emotion classifier
 emotion_classifier = pipeline(
     "text-classification",
     model="j-hartmann/emotion-english-distilroberta-base",
     top_k=1
 )
 
-# Tweet cleaning
+# Clean tweets
 def clean_tweet(text):
     return re.sub(r"http\S+|@\S+|#\S+", "", text).strip()
 
-# Fetch tweets
+# Get tweets
 def get_recent_tweets(username, bearer_token, max_results=10):
     headers = {"Authorization": f"Bearer {bearer_token}"}
     url = "https://api.twitter.com/2/tweets/search/recent"
@@ -33,7 +33,7 @@ def get_recent_tweets(username, bearer_token, max_results=10):
         return []
     return response.json().get("data", [])
 
-# Predict next emotion
+# Pattern logic
 def predict_next_emotion(emotion_list):
     if all(e == "neutral" for e in emotion_list):
         return "neutral"
@@ -46,7 +46,7 @@ def predict_next_emotion(emotion_list):
         return "fear"
     return emotion_list[-1]
 
-# Spotify mood links
+# Spotify links
 emotion_to_music = {
     "joy": "https://open.spotify.com/playlist/37i9dQZF1DXdPec7aLTmlC",
     "sadness": "https://open.spotify.com/playlist/37i9dQZF1DX7qK8ma5wgG1",
@@ -57,12 +57,11 @@ emotion_to_music = {
     "neutral": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6"
 }
 
-# UI
+# UI layout
 st.title("🎧 AI DJ: Real-Time Mood Analyzer")
 username = st.text_input("Twitter Handle", "elonmusk")
 bearer_token = st.text_input("Bearer Token", type="password")
 
-# Analyze button
 if st.button("Analyze Now"):
     with st.spinner("Analyzing..."):
         tweets = get_recent_tweets(username, bearer_token)
@@ -85,18 +84,18 @@ if st.button("Analyze Now"):
         df = pd.DataFrame(rows)
 
         if df.empty:
-            st.warning("No tweets were found or valid for analysis. Try a different username or check your token.")
+            st.warning("No tweets found or valid for analysis. Try a different user or token.")
         else:
             df["Time"] = pd.to_datetime(df["Time"])
-            st.subheader("Analyzed Tweets")
+            st.subheader("🧠 Analyzed Tweets")
             st.dataframe(df)
 
-            st.subheader("Emotion Distribution")
+            st.subheader("📊 Emotion Distribution")
             st.pyplot(df["Emotion"].value_counts().plot.pie(autopct="%1.1f%%", figsize=(6, 6)).figure)
 
-            st.subheader("Emotion Over Time")
+            st.subheader("📈 Emotion Over Time")
             st.line_chart(df.groupby([pd.Grouper(key="Time", freq="D"), "Emotion"]).size().unstack().fillna(0))
 
             mood = predict_next_emotion(emotion_memory)
             st.success(f"🎵 Recommended Mood: **{mood.upper()}**")
-            st.markdown(f"[Play playlist for {mood}]({emotion_to_music[mood]})", unsafe_allow_html=True)
+            st.markdown(f"[🎧 Listen on Spotify]({emotion_to_music[mood]})", unsafe_allow_html=True)
