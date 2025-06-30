@@ -7,15 +7,18 @@ import pandas as pd
 from collections import deque, Counter
 import re
 
+# Emotion classifier
 emotion_classifier = pipeline(
     "text-classification",
     model="j-hartmann/emotion-english-distilroberta-base",
     top_k=1
 )
 
+# Tweet cleaning
 def clean_tweet(text):
     return re.sub(r"http\S+|@\S+|#\S+", "", text).strip()
 
+# Fetch tweets
 def get_recent_tweets(username, bearer_token, max_results=10):
     headers = {"Authorization": f"Bearer {bearer_token}"}
     url = "https://api.twitter.com/2/tweets/search/recent"
@@ -30,6 +33,7 @@ def get_recent_tweets(username, bearer_token, max_results=10):
         return []
     return response.json().get("data", [])
 
+# Predict next emotion
 def predict_next_emotion(emotion_list):
     if all(e == "neutral" for e in emotion_list):
         return "neutral"
@@ -42,6 +46,7 @@ def predict_next_emotion(emotion_list):
         return "fear"
     return emotion_list[-1]
 
+# Spotify mood links
 emotion_to_music = {
     "joy": "https://open.spotify.com/playlist/37i9dQZF1DXdPec7aLTmlC",
     "sadness": "https://open.spotify.com/playlist/37i9dQZF1DX7qK8ma5wgG1",
@@ -52,10 +57,12 @@ emotion_to_music = {
     "neutral": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6"
 }
 
+# UI
 st.title("🎧 AI DJ: Real-Time Mood Analyzer")
 username = st.text_input("Twitter Handle", "elonmusk")
 bearer_token = st.text_input("Bearer Token", type="password")
 
+# Analyze button
 if st.button("Analyze Now"):
     with st.spinner("Analyzing..."):
         tweets = get_recent_tweets(username, bearer_token)
@@ -76,6 +83,7 @@ if st.button("Analyze Now"):
             })
 
         df = pd.DataFrame(rows)
+
         if df.empty:
             st.warning("No tweets were found or valid for analysis. Try a different username or check your token.")
         else:
